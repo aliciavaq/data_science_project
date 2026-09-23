@@ -1,0 +1,41 @@
+[project]
+name = "ift6758"
+version = "0.1.0"
+description = "IFT6758 project repo"
+readme = "README.md"
+authors = [{ name = "[FILL IN TEAM MEMBERS]" }]
+requires-python = ">=3.10,<3.12"  # PandasAI requires Python < 3.12
+dependencies = [
+    "numpy",
+    "pandas>=2.2",
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    "requests",
+    "tqdm",
+    "lxml",
+    "ipywidgets",
+    "pandasai>=3.0.0",
+]
+
+[project.optional-dependencies]
+# Dependencies for running Qwen3-4B-Instruct-2507 (see ift6758/llm/qwen.py).
+# Install with `uv sync --extra llm`. Keep notebooks/LLM setup.ipynb pinned to the same versions.
+llm = [
+    "accelerate>=1,<2",
+    "bitsandbytes>=0.45,<1",
+    "torch>=2.6",
+    "transformers>=4.56",
+]
+
+[dependency-groups]
+dev = [
+    "jupyterlab",
+    "ipykernel",
+    "ipdb",
+    "ruff",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
