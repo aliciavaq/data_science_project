@@ -60,6 +60,10 @@ def get_hockey_data(year: int, path: str = None) -> pd.DataFrame:
     JSON data for each game, and saves each response locally. Existing
     files are reused to avoid unnecessary API requests.
 
+    Make sure you set the HOCKEY_DATA_DIR environment variable on your
+    computer before using this function. HOCKEY_DATA_DIR is the path used 
+    to store all the json files
+
     Args:
         year: Starting year of the season (example : 2023 for 2023-24).
         path: Directory where raw JSON files will be stored.
