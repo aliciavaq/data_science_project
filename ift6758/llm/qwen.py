@@ -13,10 +13,10 @@ See the model card for usage and recommended generation settings:
 https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507
 """
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 MODEL_NAME = "Qwen/Qwen3-4B-Instruct-2507"
-
+SYSTEM_PROMPT= "You are a helpful assistant."
 
 def load_model(model_name: str = MODEL_NAME):
     """
@@ -39,6 +39,16 @@ def load_model(model_name: str = MODEL_NAME):
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name, dtype=dtype).to(device)
     return model, tokenizer
+
+
+
+def ask_qwen(model, tokenizer,user_prompt, system=SYSTEM_PROMPT, max_new_tokens=512):
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user_prompt}]
+        text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        gen_pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+        return gen_pipe(text, max_new_tokens=max_new_tokens, do_sample=False,
+                        return_full_text=False, pad_token_id=tokenizer.eos_token_id)[0]["generated_text"].strip()
+
 
 
 if __name__ == "__main__":
