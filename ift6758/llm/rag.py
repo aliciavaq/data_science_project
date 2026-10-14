@@ -2,7 +2,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 import faiss
 from pathlib import Path
-
+import requests
 
 DOCS_URL = "https://raw.githubusercontent.com/Zmalski/NHL-API-Reference/main/README.md"
 
@@ -48,5 +48,5 @@ def retrieve(query,chunks,embedder,index,k=3):
 def save_retrieval(path, query, context):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f"# Question\n\n{query}\n\n# Retrieved exerpts\n\n{context}\n")
+    path.write_text(f"# Question\n\n{query}\n\n# Retrieved exerpts\n\n{context}\n",encoding="utf-8")
    
