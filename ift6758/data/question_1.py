@@ -158,14 +158,3 @@ def get_hockey_data(year: int, path: str = None) -> pd.DataFrame:
 
 
     return pd.concat(all_plays, ignore_index=True)
-
-
-# Execute the function for seasons 2016-17 to 2023-24 and print the number of 
-# events only if the script is run directly (not imported as a module)
-if __name__ == "__main__":
-    for year in range(2016, 2024):
-        df = get_hockey_data(year)
-        print(
-            f"Season {year}-{str(year + 1)[-2:]}: "
-            f"{df.shape[0]} events"
-        )
