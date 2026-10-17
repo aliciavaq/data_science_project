@@ -40,7 +40,8 @@ def build_index(text, chunk_size=800, chunk_overlap=120 ):
     return chunks, index
 
 
-def retrieve(query,chunks,embedder,index,k=3):
+def retrieve(query,chunks,index,k=3):
+    k = min(k, len(chunks))
     query_vector = embedder.encode([query], normalize_embeddings=True).astype("float32")
     scores, positions = index.search(query_vector, k)
     context = "\n\n".join(f"[{i}] {chunks[position]}" for i, position in enumerate(positions[0], 1))
