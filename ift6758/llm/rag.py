@@ -9,11 +9,11 @@ DOCS_URL = "https://raw.githubusercontent.com/Zmalski/NHL-API-Reference/main/REA
 EMBEDDER = "sentence-transformers/all-MiniLM-L6-v2"
 LLM_DIR= Path(__file__).resolve().parent / "llm_docs"
 
+embedder = SentenceTransformer(EMBEDDER, device="cpu")
 
-
-def load_docs(llm_dir=LLM_DIR):
-    doc_path = Path(llm_dir)/ "nhl-api-reference.md"
-    if not doc_path.exists():
+def load_docs(llm_dir=LLM_DIR, reload=False):
+    doc_path = Path(llm_dir) / "nhl-api-reference.md"
+    if reload or not doc_path.exists():
         response = requests.get(DOCS_URL, timeout=30)
         response.raise_for_status()
         doc_path.parent.mkdir(parents=True, exist_ok=True)
@@ -25,18 +25,19 @@ def load_docs(llm_dir=LLM_DIR):
 
 
 def chunker(text, chunk_size, chunk_overlap):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size,separators=["\n## ", "\n### ", "\n\n", "\n", " ", ""],
+                                               chunk_overlap=chunk_overlap)
     chunks = splitter.split_text(text)
     return chunks
 
 
-def build_index(text, chunk_size=800, chunk_overlap=120):
-    embedder = SentenceTransformer(EMBEDDER, device="cpu")
+def build_index(text, chunk_size=800, chunk_overlap=120 ):
+    #embedder = SentenceTransformer(EMBEDDER, device="cpu")
     chunks=chunker(text, chunk_size, chunk_overlap)
     vectors = embedder.encode(chunks, normalize_embeddings=True).astype("float32")
     index = faiss.IndexFlatIP(vectors.shape[1])  # dot product of unit vectors = cosine similarity
     index.add(vectors)
-    return chunks, embedder, index
+    return chunks, index
 
 
 def retrieve(query,chunks,embedder,index,k=3):
