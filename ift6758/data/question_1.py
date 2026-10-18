@@ -49,10 +49,12 @@ def get_season_game_ids(year: int) -> list[int]:
             # Advance by one week to reduce API requests
             current_date += timedelta(days=7)
 
+            time.sleep(0.5) # Sleep to avoid hitting API requests limit
+
     return sorted(game_ids)
 
 
-def get_hockey_data(year: int, path: str = None) -> pd.DataFrame:
+def get_hockey_data(year: int, path: str = None, game_ids: list[int] = None) -> pd.DataFrame:
     """
     Download or load NHL play-by-play data for a season.
 
@@ -91,14 +93,15 @@ def get_hockey_data(year: int, path: str = None) -> pd.DataFrame:
     raw_dir = Path(path) / season
     raw_dir.mkdir(parents=True, exist_ok=True)
 
-    # Retrieve IDs for regular-season and playoff games
-    print(f"Retrieving NHL data for the {season} season.")
-    game_ids = get_season_game_ids(year)
-    print(f"Number of games found: {len(game_ids)}")
+    # Retrieve game IDs if they were not provided
+    if game_ids is None:
+        print(f"Retrieving NHL data for the {season} season.")
+        game_ids = get_season_game_ids(year)
+    else:
+        # Only process the requested game IDs
+        game_ids = sorted(set(game_ids))
 
-    # If no game IDs were found, raise an error
-    if not game_ids:
-        raise ValueError(f"No game IDs found for the {season} season.")
+    print(f"Number of games to process: {len(game_ids)}")
 
     # List to store DataFrames for each game's events
     all_plays = []
