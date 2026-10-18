@@ -11,6 +11,8 @@ instead of only:
 but both are still valid. You can read more about packages and modules here:
 https://docs.python.org/3/reference/import.html#regular-packages
 """
-from .question_1 import get_player_stats
+from .question_1 import get_season_game_ids, get_hockey_data
 
-__all__ = ["get_player_stats"]
+from .question_3 import get_player_names, create_shot_dataframe
+
+__all__ = ["get_season_game_ids", "get_hockey_data", "get_player_names", "create_shot_dataframe"]
