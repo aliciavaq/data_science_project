@@ -189,3 +189,5 @@ print(df.head(10))
 # References : 
 # Pandas DataFrame: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html
 # Python Pathlib: https://docs.python.org/3/library/pathlib.html
+# Python JSON: https://docs.python.org/3/library/json.html
+# Python (dict.get()) : https://docs.python.org/3/builtins/stdtypes.html#dict.get
