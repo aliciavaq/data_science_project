@@ -29,14 +29,14 @@ def get_player_names(game_data):
     return player_names
 
 
-# This function determines numerical strength from the situationCode
+# This function determines numerical strength from the situationCode 
 def get_strength(
     situation_code, event_team_id, home_team_id, away_team_id
 ):
     if situation_code is None or event_team_id is None:
         return None, None
 
-    # Convert the code to a string and preserve leading zeros
+    # Convert the code to a string and preserve leading zeros (https://docs.python.org/3/builtins/stdtypes.html#str.zfill)
     code = str(situation_code).zfill(4)
 
     if len(code) != 4 or not code.isdigit():
@@ -185,3 +185,7 @@ DATA_DIR = Path(__file__).resolve().parent
 df = create_shot_dataframe(2023, path=DATA_DIR)
 
 print(df.head(10))
+
+# References : 
+# Pandas DataFrame: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html
+# Python Pathlib: https://docs.python.org/3/library/pathlib.html
