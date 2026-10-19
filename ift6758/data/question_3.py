@@ -2,31 +2,75 @@ import json
 from pathlib import Path
 import pandas as pd
 
-# This function is used to extract player names from the game data
+
+# This function extracts player names from the game data
 def get_player_names(game_data):
     player_names = {}
-    # Loop through the roster spots to get player IDs and names
+
+    # Loop through roster spots to get player IDs and names
     for player in game_data.get("rosterSpots", []):
         player_id = player.get("playerId")
 
         first_name = player.get("firstName", {})
         last_name = player.get("lastName", {})
-
+       
+        # Checks if first_name and last_name are dictionaries and extracts the "default" value if they are. 
         if isinstance(first_name, dict):
             first_name = first_name.get("default")
-
         if isinstance(last_name, dict):
             last_name = last_name.get("default")
-        
-        # Stores the full name in the dictionary if player_id is not None
+
+        # Store the full name if the player ID is available
         if player_id is not None:
             player_names[player_id] = " ".join(
                 name for name in [first_name, last_name] if name
             )
+
     return player_names
 
-# This function is used to create a DataFrame containing shots on goal and goals for one NHL season. 
-# Each row represents one event. 
+
+# This function determines numerical strength from the situationCode
+def get_strength(
+    situation_code, event_team_id, home_team_id, away_team_id
+):
+    if situation_code is None or event_team_id is None:
+        return None, None
+
+    # Convert the code to a string and preserve leading zeros
+    code = str(situation_code).zfill(4)
+
+    if len(code) != 4 or not code.isdigit():
+        return None, None
+
+    # Extract the number of skaters for each team
+    away_skaters = int(code[1])
+    home_skaters = int(code[2])
+
+    # Identify the event team's number of skaters
+    if event_team_id == home_team_id:
+        team_skaters = home_skaters
+        opponent_skaters = away_skaters
+    elif event_team_id == away_team_id:
+        team_skaters = away_skaters
+        opponent_skaters = home_skaters
+    else:
+        return None, None
+
+    # Classifying the situation based on the number of skaters
+    if team_skaters == opponent_skaters:
+        strength_type = "Even strength"
+    elif team_skaters > opponent_skaters:
+        strength_type = "Power play"
+    else:
+        strength_type = "Shorthanded"
+
+    # Creating a string showing the number of skaters on each team, from the perspective of the team taking the shot or scoring the goal.
+    strength = f"{team_skaters}v{opponent_skaters}"
+
+    return strength_type, strength
+
+
+# This function creates a DataFrame containing shots on goal and goals for one season
 def create_shot_dataframe(year, path):
     # Locate the season directory
     season = f"{year}-{str(year + 1)[-2:]}"
@@ -36,13 +80,12 @@ def create_shot_dataframe(year, path):
         raise FileNotFoundError(
             f"Season directory not found: {season_path}"
         )
-    
-    # Creates a list to store event data
+
+    # Store event data
     events = []
 
     # Loop through all JSON files in the season directory
     for json_file in sorted(season_path.glob("*.json")):
-
         with open(json_file, "r", encoding="utf-8") as file:
             game_data = json.load(file)
 
@@ -56,13 +99,15 @@ def create_shot_dataframe(year, path):
         elif game_type_code == "03":
             game_type = "Playoffs"
         else:
-            game_type = None
+            continue
 
         player_names = get_player_names(game_data)
 
+        home_team = game_data.get("homeTeam", {})
+        away_team = game_data.get("awayTeam", {})
+
         # Loop through all events in the game
         for play in game_data.get("plays", []):
-
             event_type = play.get("typeDescKey")
 
             # Keep shots on goal and goals only
@@ -80,27 +125,29 @@ def create_shot_dataframe(year, path):
                     "scoringPlayerId", shooter_id
                 )
 
-            # Get goalie ID
+            # Get goalie ID and event team ID
             goalie_id = details.get("goalieInNetId")
-
-            # Get the ID of the team responsible for the event
             team_id = details.get("eventOwnerTeamId")
 
-            home_team = game_data.get("homeTeam", {})
-            away_team = game_data.get("awayTeam", {})
-
+            # Match the event team ID to its abbreviation
             team_name = None
 
-            # Match the event's team ID to the correct team
-            if team_id is not None:
-                if team_id == home_team.get("id"):
-                    team_name = home_team.get("abbrev")
+            if team_id == home_team.get("id"):
+                team_name = home_team.get("abbrev")
+            elif team_id == away_team.get("id"):
+                team_name = away_team.get("abbrev")
 
-                elif team_id == away_team.get("id"):
-                    team_name = away_team.get("abbrev")
+            # Get the situation code and calculate strength
+            situation_code = play.get("situationCode")
 
-            # Adding the event data to the list of events. 
-            # Missing values remain missing instead of being replaced.
+            strength_type, strength = get_strength(
+                situation_code,
+                team_id,
+                home_team.get("id"),
+                away_team.get("id")
+            )
+
+            # Store the event information
             events.append({
                 "game_id": game_id,
                 "event_id": play.get("eventId"),
@@ -116,15 +163,25 @@ def create_shot_dataframe(year, path):
                 "goalie": player_names.get(goalie_id),
                 "shot_type": details.get("shotType"),
                 "is_empty_net": details.get("emptyNet"),
-                "strength": details.get("strength"),
+                "situation_code": situation_code,
+                "strength_type": strength_type,
+                "strength": strength
             })
-    
-    # Convert the list into a Pandas DataFrame.   
+
+    # Convert the event list into a DataFrame
     df = pd.DataFrame(events)
-    # Check for duplicate event identifiers in the DataFrame. 
-    # If duplicates are found, raise a ValueError.
+
+    # Check that each event is uniquely identified
     if not df.empty:
         if df.duplicated(["game_id", "event_id"]).any():
             raise ValueError("Duplicate event identifiers found.")
 
     return df
+
+# Get the directory containing question_3.py
+DATA_DIR = Path(__file__).resolve().parent
+
+# Create the DataFrame and show the first 10 rows
+df = create_shot_dataframe(2023, path=DATA_DIR)
+
+print(df.head(10))
