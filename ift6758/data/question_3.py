@@ -178,10 +178,10 @@ def create_shot_dataframe(year, path):
 
     return df
 
-# Get the directory containing question_3.py
+# Path to directory containing question_3.py
 DATA_DIR = Path(__file__).resolve().parent
 
-# Create the DataFrame and show the first 10 rows
+# Creating the DataFrame and show the first 10 rows
 df = create_shot_dataframe(2023, path=DATA_DIR)
 
 print(df.head(10))
