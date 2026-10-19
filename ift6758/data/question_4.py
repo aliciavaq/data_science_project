@@ -257,8 +257,8 @@ fig.text(
 plt.tight_layout()
 plt.show()
 
-# References:
+# References for the analysis and visualizations:
 # Pandas documentation: https://pandas.pydata.org/docs/user_guide/groupby.html
 # NumPy hypot: https://numpy.org/doc/stable/reference/generated/numpy.hypot.html
-# Matplotlib two-axis plots: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/two_scales.html
-# Seaborn heatmap: https://seaborn.pydata.org/generated/seaborn.heatmap.html
+# Matplotlib two-axis plot (question 4.1): https://matplotlib.org/stable/gallery/subplots_axes_and_figures/two_scales.html
+# Seaborn heatmap (question 4.3): https://seaborn.pydata.org/generated/seaborn.heatmap.html
