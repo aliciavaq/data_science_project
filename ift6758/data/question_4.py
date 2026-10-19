@@ -179,6 +179,7 @@ df = df.dropna(subset=["x", "y", "shot_type"])
 
 # Calculate distance from the nearest net
 # In the NHL coordinate system, the two nets are located at x = -89 and x = 89.
+# Hypot calculates the distance from the net using the Pythagorean theorem.
 df["distance"] = np.hypot(89 - df["x"].abs(), df["y"])
 df["is_goal"] = df["event_type"].eq("goal")
 
@@ -255,3 +256,9 @@ fig.text(
 
 plt.tight_layout()
 plt.show()
+
+# References:
+# Pandas documentation: https://pandas.pydata.org/docs/user_guide/groupby.html
+# NumPy hypot: https://numpy.org/doc/stable/reference/generated/numpy.hypot.html
+# Matplotlib two-axis plots: https://matplotlib.org/stable/gallery/subplots_axes_and_figures/two_scales.html
+# Seaborn heatmap: https://seaborn.pydata.org/generated/seaborn.heatmap.html
