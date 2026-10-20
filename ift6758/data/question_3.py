@@ -179,12 +179,14 @@ def create_shot_dataframe(year, path):
     return df
 
 # Path to directory containing question_3.py
-DATA_DIR = Path(__file__).resolve().parent
+if __name__ == "__main__":
+    # Path to directory containing question_3.py
+    DATA_DIR = Path(__file__).resolve().parent
 
-# Creating the DataFrame and show the first 10 rows
-df = create_shot_dataframe(2023, path=DATA_DIR)
+    # Creating the DataFrame and show the first 10 rows
+    df = create_shot_dataframe(2023, path=DATA_DIR)
 
-print(df.head(10))
+    print(df.head(10))
 
 # References : 
 # Pandas DataFrame: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html
