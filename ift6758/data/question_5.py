@@ -20,6 +20,7 @@ if not DATA_DIR.exists():
 rink_path =  "figures/nhl_rink.png"
 
 # Define the bin edges for the x and y coordinates of the rink
+# The regular size of the rink is 200 ft. x 85 ft.
 x_edges = np.arange(25, 101, 5)
 y_edges = np.arange(-42.5, 43, 5)
 
@@ -132,11 +133,6 @@ def count_games_per_team(shots, data_dir):
     # Loop through each game ID and check if the JSON file exists
     for game_id in game_ids:
         json_path = season_dir / f"{game_id}.json"
-
-        # If the JSON file doesn't exist, skip this game and print a warning
-        if not json_path.exists():
-            print(f"Missing game file: {json_path}")
-            continue
 
         # Load the JSON data for the game to get the home and away teams
         with json_path.open("r", encoding="utf-8") as file:
@@ -413,7 +409,7 @@ def create_interactive_shot_map(
     max_abs = team_differences["shot_rate_difference"].abs().max()
 
     if pd.isna(max_abs) or max_abs == 0:
-        max_abs = 0.01
+        max_abs = 0.01      # Avoids a max = 0 for coloring
 
     # Compute the rink image path relative to the HTML file
     rink_url = os.path.relpath(
@@ -434,6 +430,7 @@ def create_interactive_shot_map(
         # Arrange the values into a 2D grid
         heatmap_data = (
             team_data
+            # Transform data in matrix
             .pivot(
                 index="y_bin",
                 columns="x_bin",
@@ -443,7 +440,7 @@ def create_interactive_shot_map(
             .sort_index(axis=1)
         )
 
-        # Get the bin center coordinates
+        # Get the bin center coordinates only
         x_values = (
             team_data[["x_bin", "x_center"]]
             .drop_duplicates()
@@ -463,16 +460,16 @@ def create_interactive_shot_map(
             go.Heatmap(
                 x=x_values,
                 y=y_values,
-                z=heatmap_data.values,
+                z=heatmap_data.values, # Difference values
                 name=team,
                 coloraxis="coloraxis",
-                opacity=0.85,
+                opacity=0.85,  # Opacity to see the rink behind
                 visible=(team == teams[0]),
-                hovertemplate=(
+                hovertemplate=(    # Show information on hovering
                     "x: %{x}<br>"
                     "y: %{y}<br>"
                     "Difference: %{z:.4f}"
-                    "<extra></extra>"
+                    "<extra></extra>"  # Delete additional information from Plotly
                 )
             )
         )
@@ -489,7 +486,7 @@ def create_interactive_shot_map(
             sizey=85,
             sizing="stretch",
             opacity=1,
-            layer="below"
+            layer="below" # Below the heatmap
         )
     )
 
@@ -499,16 +496,16 @@ def create_interactive_shot_map(
     for i, team in enumerate(teams):
 
         # Set visibility for the selected team and hide others
-        visibility = [False] * len(teams)
-        visibility[i] = True
+        visibility = [False] * len(teams) # False for all
+        visibility[i] = True # True for the i team
 
         # Add a button for this team to the dropdown menu
         buttons.append(
             dict(
                 label=team,
-                method="update",
+                method="update", # Plotly updates the graph when we click on button
                 args=[
-                    {"visible": visibility},
+                    {"visible": visibility}, # Shows heatmap for the team "i"
                     {
                         "title.text": (
                             f"NHL 5v5 Offence : Shot-rate difference — Season {season} — {team}"
@@ -520,13 +517,15 @@ def create_interactive_shot_map(
 
     # Configure the layout
     fig.update_layout(
+        # Title of the graph we're visualizing
         title=dict(
             text=f"NHL 5v5 Offence : Shot-rate difference — Season {season} — {teams[0]}",
             x=0.22,
             xanchor="left"
         ),
+        # Color scaling
         coloraxis=dict(
-            colorscale="RdBu_r",
+            colorscale="RdBu_r", # Blue and red colors
             cmin=-max_abs,
             cmax=max_abs,
             cmid=0,
@@ -539,6 +538,7 @@ def create_interactive_shot_map(
                 thickness=18
             )
         ),
+        # Horizontal axis
         xaxis=dict(
             title="Distance from goal line (ft)",
             range=[0, 100],
@@ -546,6 +546,7 @@ def create_interactive_shot_map(
             dtick=25,
             constrain="domain"
         ),
+        # Vertical axis
         yaxis=dict(
             title = "Distance from center of rink (ft)",
             range=[-42.5, 42.5],
@@ -554,6 +555,7 @@ def create_interactive_shot_map(
             scaleratio=1,
             constrain="domain"
         ),
+        # Add the dropdown menu
         updatemenus=[
             dict(
                 buttons=buttons,
@@ -564,6 +566,7 @@ def create_interactive_shot_map(
                 yanchor="top"
             )
         ],
+        # Figure layouts
         width=1100,
         height=600,
         margin=dict(l=60, r=220, t=130, b=60)
